@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -18,20 +17,39 @@ model Category {
   id         Int         @default(autoincrement()) @id
   name       String      @unique
   products   Product[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
 }
 
 model Product {
   id           Int         @default(autoincrement()) @id
-  name         String
+  name         String      @unique
   description  String?
   price        Float
   stock        Int         @default(0)
   categoryId   Int
   category     Category    @relation(fields: [categoryId], references: [id])
+  
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id           Int         @default(autoincrement()) @id
+  userId       Int
+  user         User        @relation(fields: [userId], references: [id])
+  status       String      @default("PENDING")
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  total        Float
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id           Int         @default(autoincrement()) @id
+  orderId      Int
+  order        Order       @relation(fields: [orderId], references: [id])
+  productId    Int
+  product      Product     @relation(fields: [productId], references: [id])
+  quantity     Int         @default(1)
+  price        Float
 }
 
 // User and Role (admin, customer)
@@ -43,12 +61,11 @@ model User {
   name       String?
   roleId     Int
   role       Role        @relation(fields: [roleId], references: [id])
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  orders     Order[]
 }
 
 model Role {
   id     Int      @default(autoincrement()) @id
   name   String   @unique
-  users User[]  
+  users  User[]  
 }
