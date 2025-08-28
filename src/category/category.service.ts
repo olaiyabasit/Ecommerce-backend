@@ -4,35 +4,43 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CategoryService {
-    constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-    create(data: Prisma.CategoryCreateInput) {
-        return this.prisma.category.create({ data });
-    }
+  // Create a new category
+  create(data: Prisma.CategoryCreateInput) {
+    return this.prisma.category.create({
+      data, // ✅ must be wrapped like this
+    });
+  }
 
-    findAll() {
-        return this.prisma.category.findMany({
-            include: {products: true },
-        });
-    }
+  // Get all categories
+  findAll() {
+    return this.prisma.category.findMany({
+      include: { products: true }, // ✅ fetch products with each category
+    });
+  }
 
-    findOne(id: number) {
-        return this.prisma.category.findUnique({
-            where: { id },
-            include: { products: true },
-        });
-    }
+  // Get a single category by ID
+  findOne(id: number) {
+    return this.prisma.category.findUnique({
+      where: { id },
+      include: { products: true },
+    });
+  }
 
-    update(id: number, data: Prisma.CategoryUpdateInput) {
-        return this.prisma.category.update({
-            where: { id },
-            data,
-        });
-    }
+  // Update a category
+  update(id: number, data: Prisma.CategoryUpdateInput) {
+    return this.prisma.category.update({
+      where: { id },
+      data, // ✅ required
+    });
+  }
 
-    remove(id: number) {
-        return this.prisma.category.delete({
-            where: { id },
-        });
-    }
+  // Delete a category
+  remove(id: number) {
+    return this.prisma.category.delete({
+      where: { id },
+    });
+  }
 }
+
