@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output = "../generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -15,60 +9,55 @@ datasource db {
 }
 
 model Category {
-  id         Int         @default(autoincrement()) @id
-  name       String      @unique
-  products   Product[]
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[]
 }
 
 model Product {
-  id           Int         @default(autoincrement()) @id
-  name         String      @unique
-  description  String?
-  price        Float
-  stock        Int         @default(0)
-  categoryId   Int
-  category     Category    @relation(fields: [categoryId], references: [id])
-  
-  orderItems   OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  description String?
+  price       Float
+  stock       Int         @default(0)
+  categoryId  Int
+  orderItems  OrderItem[]
+  category    Category    @relation(fields: [categoryId], references: [id])
 }
 
 model Order {
-  id           Int         @default(autoincrement()) @id
-  userId       Int
-  user         User        @relation(fields: [userId], references: [id])
-  status       String      @default("PENDING")
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  total        Float
-  items        OrderItem[]
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  status    String      @default("PENDING")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  total     Float
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
 }
 
 model OrderItem {
-  id           Int         @default(autoincrement()) @id
-  orderId      Int
-  order        Order       @relation(fields: [orderId], references: [id])
-  productId    Int
-  product      Product     @relation(fields: [productId], references: [id])
-  quantity     Int         @default(1)
-  price        Float
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int     @default(1)
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 }
 
-// User and Role (admin, customer)
-
 model User {
-  id         Int         @default(autoincrement()) @id
-  email      String      @unique
-  password   String      
-  name       String?
-  roleId     Int
-  role       Role        @relation(fields: [roleId], references: [id])
-  orders     Order[]
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String
+  name     String?
+  roleId   Int
+  orders   Order[]
+  role     Role    @relation(fields: [roleId], references: [id])
 }
 
 model Role {
-  id     Int      @default(autoincrement()) @id
-  name   String   @unique
-  users  User[]  
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
 }
