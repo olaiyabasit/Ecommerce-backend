@@ -11,7 +11,7 @@ export class OrderService {
         return this.prisma.order.create({
             data: {
                 userId: createOrderDto.userId,
-                total: createOrderDto.total,
+                total: 0,
                 status: createOrderDto.status ?? 'PENDING',
             },
             include: { user: true, items: true },
