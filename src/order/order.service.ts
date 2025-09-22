@@ -5,6 +5,12 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrderService {
+    async findByUser(userId: number) {
+        return this.prisma.order.findMany({
+            where: {userId},
+            include: { user: true, items: true},
+        });
+    }
     constructor(private prisma: PrismaService) {}
 
     async create(createOrderDto: CreateOrderDto) {

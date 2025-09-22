@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -13,12 +13,21 @@ export class AuthService {
     async register(dto: RegisterDto) {
        const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+       const customerRole = await this.prisma.role.findUnique({
+        where: { name: 'CUSTOMER'},
+       });
+
+       if (!customerRole) {
+        throw new InternalServerErrorException('role CUSTOMER not found.',);
+       }
+
        const user = await this.prisma.user.create({
         data: {
             email: dto.email,
             password: hashedPassword,
             name: dto.name,
-        } as Prisma.UserCreateInput
+            roleId: customerRole.id,
+        },
        });
 
        return {message: 'User registered successfully', userId: user.id };
@@ -35,7 +44,7 @@ export class AuthService {
         const passwordValid = await bcrypt.compare(dto.password, user.password);
         if (!passwordValid) throw new UnauthorizedException('Wrong Credentials');
 
-        const payload = { sub: user.id, email: user.email, role: user.role };
+        const payload = { sub: user.id, email: user.email, role: user.role.name };
         const token = this.jwtService.sign(payload);
 
         return { access_token: token};
