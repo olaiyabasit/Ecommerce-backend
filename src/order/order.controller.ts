@@ -1,34 +1,47 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, Request, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { Prisma } from '@prisma/client';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
-
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+    constructor(private readonly orderService: OrderService) {}
 
-  @Post()
-  create(@Body() data: Prisma.OrderCreateInput) {
-    return this.orderService.create(data);
-  }
+    @Roles('CUSTOMER')
+    @Post()
+    create(@Request() req, @Body() createOrderDto: CreateOrderDto) {
+        return this.orderService.create({...createOrderDto,
+            userId: req.user.id,
+        });
+    }
 
-  @Get()
-  findAll() {
-    return this.orderService.findAll();
-  }
+    @Roles('CUSTOMER', 'ADMIN')
+    @Get()
+    findAll(@Request() req) {
+        if (req.user.role === 'ADMIN') {
+         return this.orderService.findAll();
+        }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
-  }
+        return this.orderService.findByUser(req.user.id)
+    }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() data: Prisma.OrderUpdateInput) {
-    return this.orderService.update(+id, data);
-  }
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.orderService.findOne(+id);
+    }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
-  }
+    @Roles('ADMIN')
+    @Put(':id/status')
+    updateStatus(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
+        return this.orderService.update(+id, updateOrderDto);
+    }
+
+    @Delete(':id')
+    remove(@Param('id') id: string) {
+        return this.orderService.remove(+id);
+    }
 }
