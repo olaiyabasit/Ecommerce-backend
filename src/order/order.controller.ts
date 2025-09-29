@@ -5,13 +5,14 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Role } from 'src/auth/role.enum';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
 export class OrderController {
     constructor(private readonly orderService: OrderService) {}
 
-    @Roles('CUSTOMER')
+    @Roles(Role.CUSTOMER)
     @Post()
     create(@Request() req, @Body() createOrderDto: CreateOrderDto) {
         return this.orderService.create({...createOrderDto,
@@ -19,7 +20,7 @@ export class OrderController {
         });
     }
 
-    @Roles('CUSTOMER', 'ADMIN')
+    @Roles(Role.ADMIN, Role.CUSTOMER)
     @Get()
     findAll(@Request() req) {
         if (req.user.role === 'ADMIN') {
@@ -34,7 +35,7 @@ export class OrderController {
         return this.orderService.findOne(+id);
     }
 
-    @Roles('ADMIN')
+    @Roles(Role.ADMIN)
     @Put(':id/status')
     updateStatus(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
         return this.orderService.update(+id, updateOrderDto);

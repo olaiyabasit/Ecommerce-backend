@@ -1,46 +1,91 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ProductService {
   constructor(private prisma: PrismaService) {}
 
   // Create a new product
-  create(data: Prisma.ProductCreateInput) {
-    return this.prisma.product.create({
-      data, // ✅ fixed
-    });
+  async create(data: Prisma.ProductCreateInput) {
+    try {
+      return await this.prisma.product.create({
+        data,
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        console.log(error.code);
+        throw new NotFoundException('Product Alredy Exists');
+      }
+      throw new InternalServerErrorException('Failed to Create a Product');
+    }
   }
 
   // Get all products
-  findAll() {
-    return this.prisma.product.findMany({
-      include: { category: true }, // ✅ fetch category info with product
-    });
+  async findAll() {
+    try {
+      return await this.prisma.product.findMany({
+        include: { category: true },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        console.log(error.code);
+        throw new NotFoundException('Unable to find Products');
+      }
+      throw new InternalServerErrorException(
+        'An errror Occured Unable to fetch products',
+      );
+    }
   }
 
   // Get a single product by ID
-  findOne(id: number) {
-    return this.prisma.product.findUnique({
-      where: { id },
-      include: { category: true },
-    });
+  async findOne(id: number) {
+    try {
+      return await this.prisma.product.findUnique({
+        where: { id },
+        include: { category: true },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        console.log(error.code);
+        throw new NotFoundException('Product does not exist');
+      }
+      throw new InternalServerErrorException('Failed to Find product');
+    }
   }
 
   // Update a product
-  update(id: number, data: Prisma.ProductUpdateInput) {
-    return this.prisma.product.update({
-      where: { id },
-      data, // ✅ fixed
-    });
+  async update(id: number, data: Prisma.ProductUpdateInput) {
+    try {
+      return await this.prisma.product.update({
+        where: { id },
+        data,
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        console.log(error.code);
+        throw new NotFoundException('Product does not exist');
+      }
+      throw new InternalServerErrorException('Failed to Update  product');
+    }
   }
 
   // Delete a product
-  remove(id: number) {
-    return this.prisma.product.delete({
-      where: { id },
-    });
+  async remove(id: number) {
+    try {
+      return await this.prisma.product.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException('Product does not exist');
+      }
+      throw new InternalServerErrorException('Failed to delte product');
+    }
   }
 }
-

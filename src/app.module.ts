@@ -9,10 +9,22 @@ import { ProductModule } from './product/product.module';
 import { OrderModule } from './order/order.module';
 import { OrderItemModule } from './order-item/order-item.module';
 import { CartModule } from './cart/cart.module';
+import { UsersModule } from './users/users.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
-  imports: [AuthModule, CategoryModule, PrismaModule, ProductModule, OrderModule, OrderItemModule, CartModule],
+  imports: [
+    AuthModule,
+    CategoryModule,
+    PrismaModule,
+    ProductModule,
+    OrderModule,
+    OrderItemModule,
+    CartModule,
+    UsersModule,
+    RoleModule,
+  ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, ],
+  providers: [AppService],
 })
 export class AppModule {}
