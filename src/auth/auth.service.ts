@@ -27,7 +27,7 @@ export class AuthService {
     }
 
     const user = await this.userService.create(dto);
-
+     
     return { message: 'User registered successfully', userId: user.id };
   }
 
