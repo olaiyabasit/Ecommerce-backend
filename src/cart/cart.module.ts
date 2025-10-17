@@ -6,6 +6,7 @@ import { ProductModule } from 'src/product/product.module';
 
 @Module({
   providers: [CartService],
+  exports: [CartService],
   controllers: [CartController],
   imports: [PrismaModule, forwardRef(() => ProductModule)],
 })
