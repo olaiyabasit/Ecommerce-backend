@@ -43,6 +43,7 @@ export class OrderItemService {
       include: { order: true, product: true },
     });
     if (!item) throw new NotFoundException('Order Item does not Exist');
+    return item;
   }
 
   async update(id: number, updateOrderItemDto: UpdateOrderItemDto) {
