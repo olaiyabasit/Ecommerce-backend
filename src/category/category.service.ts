@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -76,6 +77,11 @@ export class CategoryService {
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException('Category does not exist');
+      }
+      if (error.code === 'P2003') {
+        throw new BadRequestException(
+          'Cannot delete category because it has related products',
+        );
       }
       throw new InternalServerErrorException('Failed to delete category');
     }

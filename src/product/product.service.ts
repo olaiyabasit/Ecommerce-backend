@@ -1,9 +1,10 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, Product } from '@prisma/client';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -76,7 +77,7 @@ export class ProductService {
   }
 
   // Delete a product
-  async remove(id: number) {
+  async remove(id: number): Promise<Product> {
     try {
       return await this.prisma.product.delete({
         where: { id },
@@ -84,6 +85,11 @@ export class ProductService {
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException('Product does not exist');
+      }
+      if (error.code === 'P2003') {
+        throw new BadRequestException(
+          'Cannot delete category because it has related cetegories',
+        );
       }
       throw new InternalServerErrorException('Failed to delte product');
     }
