@@ -1,78 +1,56 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    const adminRole = await prisma.role.upsert({
-        where: { name: 'ADMIN' },
-        update: {},
-        create: { name: 'ADMIN' },
-    });
+    const hashedPassword = await bcrypt.hash('securepassword', 10);
 
-    const customerRole = await prisma.role.upsert({
-        where: { name: 'CUSTOMER' },
-        update: {},
-        create: { name: 'CUSTOMER' },
-    });
+    const roles = ['ADMIN', 'CUSTOMER']
+    for(const role of roles){
+        await prisma.role.upsert({
+            where: {name: role},
+            update: {},
+            create: {name: role}
+        })
+    }
+    console.log('Roles successfully seeded')
+    
+    const categories = ['Electronics', 'Clothing','Books', 'Toys and Games']
+    for(const cat of categories){
+        await prisma.category.upsert({
+            where: {name: cat},
+            update: {},create:{name: cat}
+        })
+    }
+    console.log('Categories Seedded Successfully')
+
+  const users = [
+    { email: 'john@admin.com', name: 'John Admin', password: 'password123' },
+    { email: 'jane@customer.com', name: 'Jane Customer', password: 'password123' },
+    { email: 'bob@customer.com', name: 'Bob Customer', password: 'password123' },
+  ];
+
+  for (const u of users) {
+    const roleName = u.email.endsWith('@admin.com') ? 'ADMIN' : 'CUSTOMER';
+
+    const role = await prisma.role.findUnique({ where: { name: roleName } });
+
+    if (!role) throw new Error(`Role ${roleName} not found, seed Roles first.`);
 
     await prisma.user.upsert({
-        where: { email: 'admin@example.com' },
-        update: {},
-        create: {
-          email: 'admin@example.com',
-          name: 'Admin User',
-          password: "securepassword", // Hash passwords before seeding
-          roleId: adminRole.id,
-        },
+      where: { email: u.email },
+      update: {},
+      create: {
+        email: u.email,
+        name: u.name,
+        password: hashedPassword, 
+        role: { connect: { id: role.id } },
+      },
     });
-
-    await prisma.user.upsert({
-        where: { email: 'customer@example.com' },
-        update: {},
-        create: {
-          email: 'customer@example.com',
-          name: 'Customer User',
-          password: "securepassword", // Hash passwords before seeding
-          roleId: customerRole.id,
-        },
-    });
-
-    const electronics = await prisma.category.upsert({
-        where: { name: 'Electronics' },
-        update: {},
-        create: { name: 'Electronics' },
-    });
-
-    const fashion = await prisma.category.upsert({
-        where: { name: 'Fashion' },
-        update: {},
-        create: { name: 'Fashion' },
-    });
-
-   //Product seeding
-    await prisma.product.upsert({
-    where: { name: 'Macbook' },
-    update: {},
-    create: {
-        name: 'Macbook',
-        description: 'A fast apple macbook',
-        price: 1200000,
-        categoryId: electronics.id,
-        },
-    });
-
-    await prisma.product.upsert({
-    where: { name: 'Crop-Top' },
-    update: {},
-    create: {
-        name: 'Crop-Top',
-        description: 'Comfotable cotton crop-top',
-        price: 25000,
-        categoryId: fashion.id,
-        },
-    });
-
-    console.log('Seeding successful');
+  }
+  console.log('✅ Users seeded');
+   
 }
 
 main()
